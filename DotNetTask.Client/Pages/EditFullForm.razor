@@ -1,0 +1,457 @@
+﻿@page "/fullprogram"
+@page "/fullprogram/{id:guid}"
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+<h3>@(isNew ? "Create Form Program" : "Edit Form Program")</h3>
+
+<div class="form-container">
+    <div class="form-header">
+        <form @onsubmit="SaveFormProgram">
+            <div class="form-group">
+                <label for="title">Title</label>
+                <input id="title" @bind="formProgram.Title" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea id="description" @bind="formProgram.Description" class="form-control"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="first-name">First Name</label>
+                <input type="text" id="first-name" >
+                <span>Mandatory field</span>
+            </div>
+            <div class="form-group">
+                <label for="last-name">Last Name</label>
+                <input type="text" id="last-name" >
+                <span>Mandatory field</span>
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" >
+                <span>Mandatory field</span>
+            </div>
+            <div class="form-group">
+                <label for="phone">Phone (without dial code)</label>
+                <input type="tel" id="phone">
+                <div class="optional">
+                    <input type="checkbox" id="phone-internal">
+                    <label for="phone-internal">Internal</label>
+                    <input type="checkbox" id="phone-hide">
+                    <label for="phone-hide">Hide</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="nationality">Nationality</label>
+                <input type="text" id="nationality">
+                <div class="optional">
+                    <input type="checkbox" id="nationality-internal">
+                    <label for="nationality-internal">Internal</label>
+                    <input type="checkbox" id="nationality-hide">
+                    <label for="nationality-hide">Hide</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="residence">Current Residence</label>
+                <input type="text" id="residence">
+                <div class="optional">
+                    <input type="checkbox" id="residence-internal">
+                    <label for="residence-internal">Internal</label>
+                    <input type="checkbox" id="residence-hide">
+                    <label for="residence-hide">Hide</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="id-number">ID Number</label>
+                <input type="text" id="id-number">
+                <div class="optional">
+                    <input type="checkbox" id="id-internal">
+                    <label for="id-internal">Internal</label>
+                    <input type="checkbox" id="id-hide">
+                    <label for="id-hide">Hide</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="dob">Date of Birth</label>
+                <input type="date" id="dob">
+                <div class="optional">
+                    <input type="checkbox" id="dob-internal">
+                    <label for="dob-internal">Internal</label>
+                    <input type="checkbox" id="dob-hide">
+                    <label for="dob-hide">Hide</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="gender">Gender</label>
+                <input type="text" id="gender">
+                <div class="optional">
+                    <input type="checkbox" id="gender-internal">
+                    <label for="gender-internal">Internal</label>
+                    <input type="checkbox" id="gender-hide">
+                    <label for="gender-hide">Hide</label>
+                </div>
+            </div>
+
+            <br />
+            @foreach (var item in formQuestionlist)
+            {
+                <button type="button" class="btn btn-primary" @onclick="()=> EditQuestion(item)">Edit Question</button>
+                <div class="form-group">
+                    <label for="question">Question</label>
+                    <input id="question" @bind="item.Question" class="form-control" required />
+                </div>
+                <div class="form-group">
+                    <label for="questionType">Question Type</label>
+                    <InputSelect id="questionType" @bind-Value="item.QuestionType" class="form-control" readonly>
+                        <option value="None">None</option>
+                        <option value="Paragraph">Paragraph</option>
+                        <option value="Number">Number</option>
+                        <option value="DropDown">Dropdown</option>
+                        <option value="MCQ">Multiple Choice Question</option>
+                        <option value="YesNo">Yes/No</option>
+                    </InputSelect>
+                </div>
+
+                switch (item.QuestionType)
+                {
+               @*      case FormQuestionTypeDTO.Paragraph:
+                        <div class="form-group">
+                            <label for="question">Question</label>
+                            <input id="question" @bind="item.Question" class="form-control" />
+                        </div>
+                    break; *@
+                    case FormQuestionTypeDTO.Date:
+                        <div class="form-group">
+                            <label for="question">@item.Question</label>
+                            <input id="question" type="date" class="form-control" />
+                        </div>
+                    break;
+                    case FormQuestionTypeDTO.Number:
+                        <div class="form-group">
+                            <label for="question">@item.Question</label>
+                            <input id="question" type="number" class="form-control" />
+                        </div>
+                    
+                    break;
+                    case FormQuestionTypeDTO.YesNo:
+                        <div class="form-group">
+                            <label for="question">Yes</label>
+                            <input id="question" type="checkbox" class="form-control" />
+                        </div>
+                        <div class="form-group">
+                            <label for="question">No</label>
+                            <input id="question" type="checkbox" class="form-control" />
+                        </div>
+                    
+                    break;
+                    case FormQuestionTypeDTO.MCQ:
+                        <div class="form-group">
+                            <label for="question">@item.Question</label>
+                            <select multiple disabled>
+                                @foreach (var answer in item.MCQAnswers)
+                                {
+                                    <option>@answer</option>
+                                }
+                            </select>
+                        </div>
+                    break;
+                    case FormQuestionTypeDTO.DropDown:
+                        <div class="form-group">
+                            <label for="question">@item.Question</label>
+                            <select>
+                                @foreach (var answer in item.MCQAnswers)
+                                {
+                                    <option>@answer</option>
+                                }
+                            </select>
+                        </div>
+                    break;
+                    default:break;
+                }
+                <div class="form-group">
+                    <label for="isRequired">Is Required</label>
+                    <InputCheckbox id="isRequired" @bind-Value="item.IsRequired" class="form-check-input" readonly />
+                </div>
+            }
+
+            <br />
+            <button type="button" class="btn btn-primary" @onclick="OpenQuestionModal">Add Question</button>
+            @* <button type="submit" class="btn btn-success">Save Form</button> *@
+            <button type="submit" class="btn btn-primary">Save</button>
+            <button type="button" class="btn btn-secondary" @onclick="CloseQuestionModal">Cancel</button>
+        </form>
+    </div>
+
+
+
+    <!-- Modal -->
+    <div class="form-container" aria-labelledby="questionModalLabel" style="@NavMenuCssClass">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="questionModalLabel">Add Question</h5>
+                    <button type="button" class="close" aria-label="Close" @onclick="CloseQuestionModal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="formQuestion" OnValidSubmit="SaveFormQuestion">
+
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+
+                        <div class="form-group">
+                            <label for="type">Type</label>
+                            <InputSelect id="type" class="form-control" @bind-Value="formQuestion.QuestionType">
+                                <option value="None" selected disabled>Select a Question Type</option>
+                                <option value="Paragraph">Paragraph</option>
+                                <option value="Number">Number</option>
+                                <option value="DropDown">Dropdown</option>
+                                <option value="MCQ">Multiple Choice Question</option>
+                                <option value="YesNo">Yes/No</option>
+                                <option value="Date">Date</option>
+                            </InputSelect>
+                        </div>
+                        @if (formQuestion.QuestionType != FormQuestionTypeDTO.None)
+                        {
+                            <div class="form-group">
+                                <label for="question">Question</label>
+                                <InputText id="question" class="form-control" @bind-Value="formQuestion.Question" />
+                            </div>
+
+                            @if (formQuestion.QuestionType == FormQuestionTypeDTO.DropDown || formQuestion.QuestionType == FormQuestionTypeDTO.MCQ)
+                            {
+
+                                <div class="form-group">
+                                    <label for="answers">Answers</label>
+                                    <InputText id="answers" @bind-Value="formQuestion.Answers" class="form-control" />
+                                </div>
+
+                                @for (int i = 0; i < formQuestion.MCQAnswers.Count; i++)
+                                {
+                                    <div class="form-group">
+                                        <label for="answers">Answers</label>
+                                        <div class="input-group">
+                                            <input type="text" id="answers" @bind-value="formQuestion.MCQAnswers[i]" class="form-control" />
+                                        </div>
+                                    </div>
+                                }
+
+                                <button type="button" class="btn btn-secondary" @onclick="AddChoice">+ Add</button>
+
+                                <div class="form-group form-check">
+                                    <InputCheckbox id="type" class="form-check-input" @bind-Value="formQuestion.Other" />
+                                    <label class="form-check-label" for="type">Other</label>
+                                </div>
+
+                                if (formQuestion.QuestionType == FormQuestionTypeDTO.MCQ)
+                                {
+                                    <div class="form-group">
+                                        <label for="question">Max Choice Allowed</label>
+                                        <InputNumber id="question" class="form-control" @bind-Value="formQuestion.MaxChoice" />
+                                    </div>
+                                }
+                            }
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-error" @onclick="()=>DeleteQuestion(formQuestion)">Delete</button>
+                                <button type="button" class="btn btn-secondary" @onclick="CloseQuestionModal">Close</button>
+                                <button type="submit" class="btn btn-primary">Save Question</button>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" @onclick="CloseQuestionModal">Close</button>
+                            </div>
+                        }
+
+                       
+
+
+
+                        
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+
+
+
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+    private FormProgramDTO formProgram = new FormProgramDTO();
+    private FormDTO form = new FormDTO();
+    private FormQuestionDTO formQuestion = new FormQuestionDTO();
+    private List<FormQuestionDTO> formQuestionlist = new List<FormQuestionDTO>();
+
+    private bool isNew => Id == Guid.Empty;
+    private bool isNewQuestion =>  formQuestion.Id.ToString() == string.Empty;
+    private bool isModelOpen = false;
+    private bool isEditingQuestion = false;
+
+    private string? NavMenuCssClass => isModelOpen ? "display:block" : "display:none";
+
+
+    protected override async Task OnParametersSetAsync()
+    {
+        try
+        {
+            if (!isNew)
+            {
+
+                formProgram = await Http.GetFromJsonAsync<FormProgramDTO>($"api/FormProgram/{Id}");
+                if (formProgram != null)
+                {
+                    form = await Http.GetFromJsonAsync<FormDTO>($"api/Form/{formProgram.Id}");
+                    if (form != null)
+                    {
+                        formQuestionlist = await Http.GetFromJsonAsync<List<FormQuestionDTO>>($"api/FormQuestion/{form.Id}");
+                    }
+                }
+
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading data: {ex.Message}");
+        }
+    }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        formQuestion.MCQAnswers = new List<string>();
+        isModelOpen = false;
+        // if (!isNew)
+        // {
+        //     formProgram = await Http.GetFromJsonAsync<FormProgramDTO>($"api/FormProgram?Id={Id}");
+        //     form = await Http.GetFromJsonAsync<FormDTO>($"api/Form?Id={formProgram.Id}");
+        //     formQuestionlist = await Http.GetFromJsonAsync<List<FormQuestionDTO>>($"api/FormQuestion?Id={form.Id}");
+        // }
+
+    }
+
+    private async Task SaveFormProgram()
+    {
+        if (isNew)
+        {
+            formProgram.CreatedOn = DateTime.UtcNow;
+            await Http.PostAsJsonAsync<FormProgramDTO>("api/FormProgram", formProgram);
+
+
+
+            await Task.Delay(1000);
+
+            form.CreatedOn = DateTime.UtcNow;
+            await Http.PostAsJsonAsync<FormDTO>("api/Form", form);
+
+            await Task.Delay(1000);
+
+
+            await Http.PostAsJsonAsync<List<FormQuestionDTO>>("api/FormQuestion/PostBulk", formQuestionlist);
+
+            NavigationManager.NavigateTo("/programs");
+
+
+        }
+        else
+        {
+            formProgram.UpdatedOn = DateTime.UtcNow;
+            await Http.PutAsJsonAsync<FormProgramDTO>("api/FormProgram", formProgram);
+
+
+            form.UpdatedOn = DateTime.UtcNow;
+            await Http.PutAsJsonAsync<FormDTO>("api/Form", form);
+
+
+            // await Http.PutAsJsonAsync<List<FormQuestionDTO>>("api/FormQuestion", formQuestionlist);
+
+            NavigationManager.NavigateTo("/programs");
+        }
+    }
+
+    private async Task SaveFormQuestion()
+    {
+        if (formQuestion.Id == Guid.Empty)
+        {
+            formQuestion.CreatedOn = DateTime.UtcNow;
+            formQuestionlist.Add(formQuestion);
+            if (formQuestion.Other)
+            {
+                formQuestion.MCQAnswers.Add("Other");
+            }
+
+        }
+        if (!isNew && formQuestion.Id == Guid.Empty)
+        {
+            formQuestion.CreatedOn = DateTime.UtcNow;
+            formQuestion.FormId = form.Id;
+            if (formQuestion.Other && !formQuestion.MCQAnswers.Contains("Other"))
+            {
+                formQuestion.MCQAnswers.Add("Other");
+            }
+            await Http.PostAsJsonAsync<FormQuestionDTO>($"api/FormQuestion", formQuestion);
+        }
+        else
+        {
+            formQuestion.UpdatedOn = DateTime.UtcNow;
+            formQuestion.FormId = form.Id;
+            if (formQuestion.Other && !formQuestion.MCQAnswers.Contains("Other"))
+            {
+                formQuestion.MCQAnswers.Add("Other");
+            }
+            await Http.PutAsJsonAsync<FormQuestionDTO>($"api/FormQuestion", formQuestion);
+
+        }
+        isModelOpen = false;
+    }
+
+    private void CloseQuestionModal()
+    {
+        formQuestion = new FormQuestionDTO();
+        isModelOpen = false;
+        isEditingQuestion = false;
+    }
+
+    private void OpenQuestionModal()
+    {
+        if (isNew && formQuestion.Id == Guid.Empty)
+        {
+            formQuestion = new FormQuestionDTO { MCQAnswers = new List<string>() };
+        }
+       
+        isModelOpen = true;
+    }
+
+    private void AddChoice()
+    {
+        formQuestion.MCQAnswers.Add(formQuestion.Answers);
+
+    }
+    private void EditQuestion(FormQuestionDTO editquestion)
+    {
+        OpenQuestionModal();
+        formQuestion = editquestion;
+        isEditingQuestion = true;
+
+    }
+    private async void DeleteQuestion(FormQuestionDTO deletdFormQuestion)
+    {
+        formQuestionlist.Remove(deletdFormQuestion);
+        CloseQuestionModal();
+        if (!isNew)
+        {
+            await Http.DeleteAsync($"api/FormQuestion/{deletdFormQuestion.Id}");
+            NavigationManager.NavigateTo($"/fullprogram/{Id}");
+        }
+
+        
+    }
+
+}

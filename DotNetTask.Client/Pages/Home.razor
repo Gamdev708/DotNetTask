@@ -1,0 +1,43 @@
+﻿@page "/"
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+<PageTitle>Home</PageTitle>
+
+<h1>Hello, world!</h1>
+
+Welcome to your new app.
+
+<form @onsubmit="SignIn">
+    <div class="form-group">
+        <label for="user-name">User Name</label>
+        <input type="text" id="user-name" @bind="loginRequest.Username">
+    </div>
+    <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" @bind="loginRequest.Password">
+    </div>
+    <input type="submit" value="Login">
+
+    <div>
+        <p>@loginResponse.Message</p>
+    </div>
+</form>
+
+@code {
+    LoginRequest loginRequest = new LoginRequest();
+    LoginResponse loginResponse = new LoginResponse();
+
+    private async Task SignIn()
+    {
+        var responseMessage = await Http.PostAsJsonAsync<LoginRequest>($"api/User/login", loginRequest);
+
+        loginResponse = await responseMessage.Content.ReadFromJsonAsync<LoginResponse>();
+
+        if (loginResponse.Success)
+        {
+            NavigationManager.NavigateTo("/programs");
+        }
+
+    }
+}

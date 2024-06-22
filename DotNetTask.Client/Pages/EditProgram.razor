@@ -1,0 +1,51 @@
+﻿@page "/edit-program"
+@page "/edit-program/{Id:Guid}"
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+<h3>@(isNew ? "Create Form Program" : "Edit Form Program")</h3>
+
+<form>
+    <div class="form-group">
+        <label for="title">Title</label>
+        <input id="title" @bind="formProgram.Title" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="description">Description</label>
+        <textarea id="description" @bind="formProgram.Description" class="form-control"></textarea>
+    </div>
+    <button type="button" class="btn btn-primary" @onclick="SaveFormProgram">Save</button>
+    <button type="button" class="btn btn-secondary" @onclick='() => NavigationManager.NavigateTo("programs")'>Cancel</button>
+</form>
+
+@code {
+    [Parameter] public Guid? Id { get; set; }
+    private FormProgramDTO formProgram = new FormProgramDTO();
+    private bool isNew => Id == null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!isNew)
+        {
+            formProgram = await Http.GetFromJsonAsync<FormProgramDTO>("FormProgram");
+        }
+
+
+    }
+
+    private async Task SaveFormProgram()
+    {
+        if (isNew)
+        {
+            formProgram.CreatedOn = DateTime.UtcNow;
+            await Http.PostAsJsonAsync<FormProgramDTO>("api/FormProgram", formProgram);
+            NavigationManager.NavigateTo("/index");
+        }
+        else
+        {
+            formProgram.UpdatedOn = DateTime.UtcNow;
+            await Http.PutAsJsonAsync<FormProgramDTO>("api/FormProgram", formProgram);
+            NavigationManager.NavigateTo("/upda");
+        }
+    }
+}

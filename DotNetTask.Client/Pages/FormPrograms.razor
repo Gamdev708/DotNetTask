@@ -1,0 +1,94 @@
+﻿@page "/programs"
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+@attribute [StreamRendering(true)]
+
+<PageTitle>Programs</PageTitle>
+
+<h1>FormPrograms</h1>
+
+<button @onclick=CreateProgram>Create</button>
+
+@if (programs == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+
+    <br />
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Description</th>
+                <th>Created By</th>
+                <th>Created On</th>
+                <th>Updated On</th>
+                <th>Updated By</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var program in programs)
+            {
+                <tr>
+                    <td>@program.Title</td>
+                    <td>@program.Description</td>
+                    <td>@program.CreatedBy</td>
+                    <td>@program.CreatedOn</td>
+                    <td>@program.UpdatedOn</td>
+                    <td>@program.LastUpdatedBy</td>
+                    <td>
+                        @if (!loginResponse.Success)
+                        {
+                            <button @onclick="() => ViewForms(program.Id)">View</button>
+                            <button @onclick="() => EditProgram(program.Id)">Edit</button>
+                            <button @onclick="() => DeleteProgram(program.Id)">Delete</button>
+                        }
+                        <button @onclick="() => FillForms(program.Id)">Fill</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+
+@code {
+    private FormProgramDTO[]? programs;
+    LoginResponse loginResponse = new LoginResponse();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        programs = await Http.GetFromJsonAsync<FormProgramDTO[]>("api/FormProgram");
+
+        loginResponse = await Http.GetFromJsonAsync<LoginResponse>($"api/User/userType");
+    }
+
+    protected async Task DeleteProgram(Guid Id)
+    {
+        await Http.DeleteAsync($"api/FormProgram/{Id}");
+        NavigationManager.NavigateTo("/programs");
+       
+    }
+    protected async Task EditProgram(Guid Id)
+    {
+        NavigationManager.NavigateTo($"/fullprogram/{Id}");
+    }
+    void ViewForms(Guid Id)
+    {
+        NavigationManager.NavigateTo($"/viewform/{Id}");
+    }
+    void FillForms(Guid Id)
+    {
+        NavigationManager.NavigateTo($"/fillform/{Id}");
+    }
+
+    void CreateProgram()
+    {
+        NavigationManager.NavigateTo("/fullprogram");
+    }
+}
